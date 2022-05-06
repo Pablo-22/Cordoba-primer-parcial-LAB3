@@ -152,6 +152,7 @@
             </tbody>
         </table>
 
+        <button onclick="onAdd()" id="addButton">Agregar</button>
         <div class="form-container" id="formContainer">
             <div class="card">
                 <select class="form-select" name="formSelect" id="formSelect">
@@ -161,9 +162,9 @@
                 <form id="abmForm">
                 </form>
                 <div class="abm-buttons">
-                    <button onclick="onAdd()">Agregar</button>
                     <button onclick="onDelete()">Eliminar</button>
                     <button onclick="onEdit()">Modificar</button>
+                    <button onclick="onCancel()">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -178,6 +179,7 @@
         var tableHeaders = ['Id', 'DNI', 'Nombre', 'Apellido', 'CursoNumero', 'CursoLetra', 'Materia', 'Año'];
         var orderValue = { prop: '', isAsc: false };
         var filterValue = '';
+        var isFormActivated = false;
 
         function jsonToArray(jsonString){
             return JSON.parse(jsonString);
@@ -462,18 +464,26 @@
                 formContainer.style.display = 'block'; 
             })
 
+            isFormActivated = true;
             editMode();
         }
 
         function hideForm() {
             let formContainer = document.getElementById('formContainer');
-                formContainer.style.display = 'none'; 
+            formContainer.style.display = 'none'; 
+            isFormActivated = false;
+
+            let addButton = document.getElementById('addButton');
+            addButton.disabled = false;
         }
 
 
         function editMode() {
-            let input = document.getElementById('inputid');
-            input.readOnly = true; 
+            let idInput = document.getElementById('inputid');
+            idInput.readOnly = true; 
+
+            let addButton = document.getElementById('addButton');
+            addButton.disabled = true;
         }
         /******************* FIN FORM *********************************/ 
 
@@ -490,30 +500,34 @@
         }
 
         function onAdd(){
-            let selectedValue = document.getElementById('formSelect').value;
-            let valuesArray = getInputsValues();
-            let newObj;
-            let target;
+            if (isFormActivated) {
+                let selectedValue = document.getElementById('formSelect').value;
+                let valuesArray = getInputsValues();
+                let newObj;
+                let target;
 
-            valuesArray[0] = null;
+                valuesArray[0] = null;
 
-            switch (selectedValue) {
-                case 'Docente':
-                    newObj = new Docente(...valuesArray);
-                    break;
-                case 'Alumno':
-                    newObj = new Alumno(...valuesArray);
-                    break;
+                switch (selectedValue) {
+                    case 'Docente':
+                        newObj = new Docente(...valuesArray);
+                        break;
+                    case 'Alumno':
+                        newObj = new Alumno(...valuesArray);
+                        break;
+                }
+
+                let checkId = finalOutputArray.filter(x => x.id == newObj.id);
+                if (checkId.length) {
+                    alert('Ya existe un elemento con ese ID');
+                }else{
+                    finalOutputArray.push(newObj);
+                    renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+                }
+                hideForm()
+            }else {
+                renderForm();
             }
-
-            let checkId = finalOutputArray.filter(x => x.id == newObj.id);
-            if (checkId.length) {
-                alert('Ya existe un elemento con ese ID');
-            }else{
-                finalOutputArray.push(newObj);
-                renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
-            }
-
         }
 
         function onEdit(){
@@ -547,6 +561,10 @@
             let id = document.getElementById('inputid').value;
             finalOutputArray = finalOutputArray.filter(x => x.id != id);
             renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+            hideForm();
+        }
+
+        function onCancel() {
             hideForm();
         }
         /************************** ABM ******************************/
