@@ -332,6 +332,7 @@
                 let row = document.getElementById(e.id);
                 row.addEventListener('dblclick', function onRowDoubleClicked(event) {
                     renderForm(e);
+                    editMode();
                 });
             });
         }
@@ -449,6 +450,12 @@
                 formContainer.style.display = 'block'; 
             })
         }
+
+
+        function editMode() {
+            let input = document.getElementById('inputid');
+            input.readOnly = true; 
+        }
         /******************* FIN FORM *********************************/ 
 
         /************************** ABM ******************************/
@@ -495,23 +502,25 @@
             let target;
 
             switch (selectedValue) {
-                case 'Cliente':
-                    newObj = new Cliente(...valuesArray);
+                case 'Docente':
+                    newObj = new Docente(...valuesArray);
                     break;
-                case 'Empleado':
-                    newObj = new Empleado(...valuesArray);
+                case 'Alumno':
+                    newObj = new Alumno(...valuesArray);
                     break;
             }
 
-            targetIndex = finalOutputArray.map(function(e) {
-                return e.id;
-            }).indexOf(newObj.id);
+            console.log(newObj);
 
-            console.log(finalOutputArray[targetIndex]);
+            targetIndex = finalOutputArray.findIndex((e) => {
+                return e.id == newObj.id;
+            })
+
+            //console.log(finalOutputArray, targetIndex);
 
             finalOutputArray[targetIndex] = newObj;
 
-            console.log(finalOutputArray[targetIndex]);
+            console.log(finalOutputArray);
 
             renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
         }
