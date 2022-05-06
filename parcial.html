@@ -1,0 +1,562 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <style>
+            *{
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            }
+
+            /**************************** TABLE STYLES ****************************/   
+            table {
+                /* border-collapse sets the table's elements to share borders, rather than floating as separate "boxes". */
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            td,
+            th {
+                border: .0625rem solid rgb(189, 189, 189);
+                text-align: left;
+                padding: .5rem;
+            }
+
+
+            th {
+                background: #f8f9fa;
+            }
+
+
+            tr:nth-child(even) {
+                /* Set every other cell slightly darker. Improves readability. */
+                background: #f8f9fa;
+            }
+
+            table caption {
+                font-weight: bold;
+                margin-bottom: .6rem;
+            }
+
+                        
+            /* BUTTONS */
+            a /* Link */ button,
+            button,
+            input[type="submit"],
+            input[type="reset"],
+            input[type="button"] {
+                display: inline-block;
+                padding: 6px 12px;
+                text-align: center;
+                text-decoration: none;
+                white-space: nowrap;
+                background: #d2f1fa;
+                border: none;
+                border-radius: .45em;
+                box-sizing: border-box;
+                cursor: pointer;
+            }
+
+            button:hover{
+                background-color: #6fd4f0;
+            }
+            /**************************** TABLE STYLES ****************************/
+
+
+            button:active{
+                background-color: #40a2bd;
+            }
+
+            label{
+                margin-right: 1rem;
+                font-size: 1.2rem;
+            }
+
+            input[type="checkbox"]{
+                transform: scale(1.2);
+                margin-right: .5rem;
+            }
+
+            #checkboxesContainer{
+                margin-top: 1rem;
+            }
+
+            .form-container {
+                margin-top: .5rem;
+                display: block;
+                text-align: center;
+                display: none;
+            }
+
+            .card{
+                background-color: #c9e5ed;
+                width: 20%;
+                margin: auto;
+                border-radius: 5px;
+                padding: 1.5rem;
+            }
+
+            form{
+                display: inline-block;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: left;
+            }
+
+            form > label, form > input {
+                display:block;
+            }
+
+            form > input {
+                margin-bottom: .2rem;
+            }
+
+            .form-select{
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+                text-align: left;
+            }
+
+            .abm-buttons{
+                margin-top: .5rem;
+            }
+        </style>
+    </head>
+    <body>
+        <span>Filtrar por: </span>
+        <select name="filter" id="filter">
+            <option selected="selected" value="Todo">Todo</option>
+            <option value="Docente">Solo docentes</option>
+            <option value="Alumno">Solo alumnos</option>
+        </select>
+
+        <div>
+            <span>Valor promedio de IDs:</span>
+            <input id="calcInput" type="text" readonly>
+            <button id="calcButton"> Calcular </button>
+        </div>
+
+        <div id="checkboxesContainer"> </div>
+
+        <table id="dataTable" class="content-table">
+            <thead id="tableHead">
+                <th> </th>
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="form-container" id="formContainer">
+            <div class="card">
+                <select class="form-select" name="formSelect" id="formSelect">
+                    <option value="Docente">Docente</option>
+                    <option value="Alumno">Alumno</option>
+                </select>
+                <form id="abmForm">
+                </form>
+                <div class="abm-buttons">
+                    <button onclick="onAdd()">Agregar</button>
+                    <button onclick="onDelete()">Eliminar</button>
+                    <button onclick="onEdit()">Modificar</button>
+                </div>
+            </div>
+        </div>
+
+    </body>
+
+
+    <script>
+        let strJson = '[{"id":1,"dni":17663295,"nombre":"FABIAN MARCELO","apellido":"ABADIE","cursoNumero":1,"cursoLetra":"F"},{"id":2,"dni":38724762,"nombre":"MAIRA DAIANA","apellido":"ABALOS","cursoNumero":3,"cursoLetra":"M"},{"id":3,"dni":25447357,"nombre":"NOELIA LIDIA","apellido":"ABBA","cursoNumero":2,"cursoLetra":"N"},{"id":4,"dni":27577699,"nombre":"MARÍA SOLEDAD","apellido":"ACHOR","cursoNumero":2,"cursoLetra":"M"},{"id":900,"dni":11496581,"nombre":"JOSE MIGUEL","apellido":"ARMALEO","materia":"Fisica","año":1},{"id":899,"dni":35326658,"nombre":"ROSA DEL VALLE","apellido":"LOPEZ","materia":"Lengua","año":3},{"id":898,"dni":39638351,"nombre":"DANIELA BELEN","apellido":"BROGGI D`ATENA","materia":"Matematica","año":3},{"id":897,"dni":17275566,"nombre":"PABLO ALBERTO","apellido":"ALMEIDA","materia":"Quimica","año":1}]'
+
+        var propNames = ['id', 'dni', 'nombre', 'apellido',  'cursoNumero', 'cursoLetra', 'materia', 'año'];
+        var tableHeaders = ['Id', 'DNI', 'Nombre', 'Apellido', 'CursoNumero', 'CursoLetra', 'Materia', 'Año'];
+        var orderValue = { prop: '', isAsc: false };
+        var filterValue = '';
+
+        function jsonToArray(jsonString){
+            return JSON.parse(jsonString);
+        }
+
+        class Persona {
+            id = 0;
+            dni = 0;
+            apellido = '';
+            nombre = '';
+
+            constructor(id, dni, apellido, nombre) {
+                this.id = id;
+                this.dni = dni;
+                this.apellido = apellido;
+                this.nombre = nombre;
+            }
+        }
+
+
+        class Alumno extends Persona {
+            cursoLetra = '';
+            cursoNumero = 0;
+
+            constructor(id, dni, apellido, nombre, cursoLetra, cursoNumero) {
+                super(id, dni, apellido, nombre);
+
+                this.cursoLetra = cursoLetra;
+                this.cursoNumero = cursoNumero;
+            }
+        }
+
+
+        class Docente extends Persona {
+            materia = '';
+            año = 0;
+
+            constructor(id, dni, apellido, nombre, materia, año) {
+                super(id, dni, apellido, nombre);
+
+                this.materia = materia;
+                this.año = año;
+            }
+        }
+
+        
+        function arrayToObject(arr) {
+            let finalArray = new Array();
+            let finalElement;
+            arr.forEach(e => {
+                if( e.hasOwnProperty('cursoLetra') || e.hasOwnProperty('cursoNumero')) {
+                    finalElement = new Alumno( e.id, e.dni, e.apellido, e.nombre, e.cursoLetra, e.cursoNumero );
+                } else if (e.hasOwnProperty('materia') || e.hasOwnProperty('año')) {
+                    finalElement = new Docente( e.id, e.dni, e.apellido, e.nombre, e.materia, e.año );
+                }
+
+                finalArray.push(finalElement);
+            });
+            return finalArray;
+        }
+
+
+        /********************** CREACIÓN DE LA TABLA **********************/
+        function createHeadersCheckboxes(headers) {
+            let container = document.getElementById('checkboxesContainer');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i];
+
+                let subContainer = document.createElement("div");
+                let label = document.createElement("label");
+                let checkbox = document.createElement("input");
+    
+                checkbox.type = 'checkbox';
+                checkbox.setAttribute('id', 'check' + header);
+                checkbox.setAttribute('checked', 'true');
+                
+                label.setAttribute('for', 'check' + header);
+                label.appendChild(document.createTextNode(header));
+                
+                container.appendChild(checkbox);
+                container.appendChild(label);
+
+                checkbox.addEventListener('change', function onCheckedChanged(event) {
+                    renderTable(finalOutputArray, propNames, filterCriteria, 
+                                filterValue, orderCriteria, orderValue);
+                });
+            }
+        }
+
+
+        function createTableHeaders(headers) {
+            let tableHead = document.getElementById('tableHead');
+            tableHead.innerHTML = '';
+
+            for (let i = 0; i < headers.length; i++) {
+                const header = headers[i];
+                let checkboxState = document.getElementById('check' + header).checked;
+
+                // Solo creo el header si el checkbox está seleccionado
+                if (checkboxState) {
+
+                    let th = document.createElement("th");
+                    let btn = document.createElement("button");
+                    
+                    btn.appendChild(document.createTextNode(header));
+                    btn.setAttribute('id', propNames[i]);
+                    th.appendChild(btn);
+                    tableHead.appendChild(th);
+                    
+                    let headerBtn = document.getElementById(propNames[i]);
+                    headerBtn.addEventListener('click', function onHeaderClick() { 
+                        if (orderValue.prop != propNames[i]) {
+                            orderValue.prop = propNames[i];
+                            orderValue.isAsc = false;
+                        } else {
+                            orderValue.isAsc = !orderValue.isAsc;
+                        }
+                        
+                        renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+                    });
+                }
+            }
+        }
+
+        function createTableContent(dataSource, columnNames) {
+            let tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            dataSource.forEach(e => {
+                tr = document.createElement("tr");
+                tr.setAttribute('id', e.id);
+
+                for (let i = 0; i < columnNames.length; i++) {
+                    const column = columnNames[i];
+                    const header = tableHeaders[i];
+
+                    let checkboxState = document.getElementById('check' + header).value;
+
+                    // Si el checkbox no está activado, no cargo la columna.
+                    if (checkboxState) {
+                        td = document.createElement("td");
+                        let cellText = e[column] || '';
+                        
+                        td.appendChild(document.createTextNode(cellText));
+                        tr.appendChild(td);
+                    }
+                }
+
+                tableBody.appendChild(tr);
+
+                let row = document.getElementById(e.id);
+                row.addEventListener('dblclick', function onRowDoubleClicked(event) {
+                    renderForm(e);
+                });
+            });
+        }
+        
+
+        function renderTable(fullDataSource, columnNames, filterCriteria, filterValue, orderCriteria, orderValue) {
+
+            let filteredData = fullDataSource.filter(filterCriteria(filterValue));
+            filteredData = filteredData.sort(orderCriteria(orderValue.prop, orderValue.isAsc));
+
+            createTableHeaders(tableHeaders);
+            createTableContent(filteredData, columnNames);
+        }
+
+        function calculateValue(fullDataSource, filterCriteria, filterValue){
+            let filteredData = fullDataSource.filter(filterCriteria(filterValue));
+            let avg = filteredData
+                .map( function(a){ return a.id } )
+                .reduce( function(a,b){ return (+a) + (+b) },) / filteredData.length;
+            
+            return avg;
+        }
+
+
+        function filterCriteria(selectedValue){
+
+            return function filterObj(persona) {
+                switch (selectedValue) {
+                    case 'Alumno':
+                        return persona.hasOwnProperty('cursoNumero');
+                        break;
+                    case 'Docente':
+                        return !persona.hasOwnProperty('cursoNumero');
+                        break;
+                    default:
+                        return true;
+                    break;
+                }
+            }
+        }
+
+
+        function orderCriteria(prop, isAsc) {
+
+            return function compareFunction(a, b) {
+                if (prop) {
+                    let tmpA = a[prop];
+                    let tmpB = b[prop];
+
+                    if (typeof tmpA == 'string' || typeof tmpB == 'string') {
+                        // Si alguno viene vacío, le asigno ''
+                        tmpA = !tmpA ? '' : tmpA;
+                        tmpB = !tmpB ? '' : tmpB;
+
+                        return isAsc ? tmpA.localeCompare(tmpB) : tmpB.localeCompare(tmpA);
+                        
+                    }else if (typeof tmpA == 'number' || typeof tmpB == 'number') {
+                        // Si alguno viene vacío, le asigno 0
+                        tmpA = !tmpA ? 0 : tmpA; 
+                        tmpB = !tmpB ? 0 : tmpB;
+
+                        return isAsc ? tmpB - tmpA : tmpA - tmpB;
+                    }   
+                }
+                return;
+            }
+        }
+        /********************** FIN CREACIÓN DE LA TABLA **********************/
+
+
+        /********************** FORM **********************************/
+        function renderForm(obj){
+            let form = document.getElementById('abmForm');
+            form.innerHTML = '';
+
+            let formSelect = document.getElementById('formSelect');
+            let className = formSelect.value;
+            let objToArray;
+
+            if (obj) {
+                formSelect.value = obj.constructor.name;
+            }else {
+                switch (className) {
+                case 'Docente':
+                    obj = new Docente();
+                    break;
+                case 'Alumno':
+                    obj = new Alumno();
+                    break;
+                }
+            }
+
+            objToArray = Object.entries(obj);
+
+            objToArray.map((element) => {
+                let key = element[0];
+                let value = element[1] || '';
+
+                let label = document.createElement('label');
+                
+                label.appendChild( document.createTextNode(key.charAt(0).toUpperCase() + key.slice(1)) );
+                console.log(key.charAt(0).toUpperCase() + key.slice(1));
+
+                let input = document.createElement('input');
+                input.value = value;
+                input.setAttribute('id', 'input' + key);
+                input.setAttribute('class', 'form-input');
+
+                label.setAttribute('for', 'input' + key);
+
+                form.appendChild(label);
+                form.appendChild(input);
+
+                let formContainer = document.getElementById('formContainer');
+                formContainer.style.display = 'block'; 
+            })
+        }
+        /******************* FIN FORM *********************************/ 
+
+        /************************** ABM ******************************/
+        function getInputsValues(){
+            let inputsArray = Array.from(document.getElementsByClassName('form-input'));
+            let valuesArray = inputsArray.map(input => input.value);
+            return valuesArray;
+        }
+
+        function fillInputsValues(){ // TODO: Completar con los valores del objeto obtenido.
+            let inputsArray = Array.from(document.getElementsByClassName('form-input'));
+            inputsArray.map(input => input.value = 3);
+        }
+
+        function onAdd(){
+            let selectedValue = document.getElementById('formSelect').value;
+            let valuesArray = getInputsValues();
+            let newObj;
+            let target;
+
+            switch (selectedValue) {
+                case 'Cliente':
+                    newObj = new Cliente(...valuesArray);
+                    break;
+                case 'Empleado':
+                    newObj = new Empleado(...valuesArray);
+                    break;
+            }
+
+            let checkId = finalOutputArray.filter(x => x.id == newObj.id);
+            if (checkId.length) {
+                alert('Ya existe un elemento con ese ID');
+            }else{
+                finalOutputArray.push(newObj);
+                renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+            }
+
+        }
+
+        function onEdit(){
+            let selectedValue = document.getElementById('formSelect').value;
+            let valuesArray = getInputsValues();
+            let newObj;
+            let target;
+
+            switch (selectedValue) {
+                case 'Cliente':
+                    newObj = new Cliente(...valuesArray);
+                    break;
+                case 'Empleado':
+                    newObj = new Empleado(...valuesArray);
+                    break;
+            }
+
+            targetIndex = finalOutputArray.map(function(e) {
+                return e.id;
+            }).indexOf(newObj.id);
+
+            console.log(finalOutputArray[targetIndex]);
+
+            finalOutputArray[targetIndex] = newObj;
+
+            console.log(finalOutputArray[targetIndex]);
+
+            renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+        }
+
+
+        function onDelete(id){
+            finalOutputArray = finalOutputArray.filter(x => x.id !== id);
+        }
+        /************************** ABM ******************************/
+
+
+
+        
+        /************************ MAIN ***********************/
+        let newArray = jsonToArray(strJson);
+        console.log(newArray);
+
+        let finalOutputArray = arrayToObject(newArray);
+        console.log(finalOutputArray);
+
+
+        let filterList = document.getElementById('filter');
+        filterValue.value = filterList.value;
+        filterList.addEventListener('change', function onFilterSelected(event) { 
+            
+            filterValue = event.target.value;
+            renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+
+        });
+
+        let calculateButton = document.getElementById('calcButton');
+        calculateButton.addEventListener('click', function onClick(event){
+            let avg = calculateValue(finalOutputArray, filterCriteria, filterValue);
+            let input = document.getElementById('calcInput');
+            input.value = avg;
+        })
+
+        let formSelect = document.getElementById('formSelect');
+        formSelect.addEventListener('change', function onChange(event){
+            renderForm();
+        })
+
+        createHeadersCheckboxes(tableHeaders);
+        renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+
+        /******************** FIN MAIN **********************/
+    </script>
+</html>
