@@ -123,6 +123,16 @@
             .abm-buttons{
                 margin-top: .5rem;
             }
+
+            .add-btn-container{
+                text-align: center;  
+                width: 100%;
+            }
+
+            .add-btn{
+                margin-top: .8rem;
+                text-align: center;
+            }
         </style>
     </head>
     <body>
@@ -152,7 +162,10 @@
             </tbody>
         </table>
 
-        <button onclick="onAdd()" id="addButton">Agregar</button>
+        <div class="add-btn-container">
+            <button onclick="onAdd()" id="addButton" class="add-btn">Agregar</button>
+        </div>
+
         <div class="form-container" id="formContainer">
             <div class="card">
                 <select class="form-select" name="formSelect" id="formSelect">
@@ -346,7 +359,7 @@
 
                 let row = document.getElementById(e.id);
                 row.addEventListener('dblclick', function onRowDoubleClicked(event) {
-                    renderForm(e);
+                    renderForm(e, true);
                     
                 });
             });
@@ -419,7 +432,7 @@
 
 
         /********************** FORM **********************************/
-        function renderForm(obj){
+        function renderForm(obj, isEditMode){
             let form = document.getElementById('abmForm');
             form.innerHTML = '';
 
@@ -465,7 +478,9 @@
             })
 
             isFormActivated = true;
-            editMode();
+            if (isEditMode) {
+                editMode();
+            }
         }
 
         function hideForm() {
