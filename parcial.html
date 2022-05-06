@@ -189,10 +189,15 @@
             nombre = '';
 
             constructor(id, dni, apellido, nombre) {
-                this.id = id;
                 this.dni = dni;
                 this.apellido = apellido;
                 this.nombre = nombre;
+
+                if (id) {
+                    this.id = id;
+                } else {
+                    this.id = getMaxId() + 1;
+                }
             }
         }
 
@@ -236,6 +241,13 @@
                 finalArray.push(finalElement);
             });
             return finalArray;
+        }
+
+        function getMaxId() {
+            let maxId = finalOutputArray.map(x => { return x.id });
+            maxId = Math.max(...maxId);
+
+            return maxId;
         }
 
 
@@ -332,7 +344,7 @@
                 let row = document.getElementById(e.id);
                 row.addEventListener('dblclick', function onRowDoubleClicked(event) {
                     renderForm(e);
-                    editMode();
+                    
                 });
             });
         }
@@ -434,7 +446,6 @@
                 let label = document.createElement('label');
                 
                 label.appendChild( document.createTextNode(key.charAt(0).toUpperCase() + key.slice(1)) );
-                console.log(key.charAt(0).toUpperCase() + key.slice(1));
 
                 let input = document.createElement('input');
                 input.value = value;
@@ -449,6 +460,13 @@
                 let formContainer = document.getElementById('formContainer');
                 formContainer.style.display = 'block'; 
             })
+
+            editMode();
+        }
+
+        function hideForm() {
+            let formContainer = document.getElementById('formContainer');
+                formContainer.style.display = 'none'; 
         }
 
 
@@ -476,12 +494,14 @@
             let newObj;
             let target;
 
+            valuesArray[0] = null;
+
             switch (selectedValue) {
-                case 'Cliente':
-                    newObj = new Cliente(...valuesArray);
+                case 'Docente':
+                    newObj = new Docente(...valuesArray);
                     break;
-                case 'Empleado':
-                    newObj = new Empleado(...valuesArray);
+                case 'Alumno':
+                    newObj = new Alumno(...valuesArray);
                     break;
             }
 
@@ -510,24 +530,21 @@
                     break;
             }
 
-            console.log(newObj);
-
             targetIndex = finalOutputArray.findIndex((e) => {
                 return e.id == newObj.id;
             })
 
-            //console.log(finalOutputArray, targetIndex);
-
             finalOutputArray[targetIndex] = newObj;
 
-            console.log(finalOutputArray);
-
+            hideForm();
             renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+
         }
 
 
         function onDelete(id){
             finalOutputArray = finalOutputArray.filter(x => x.id !== id);
+            hideForm();
         }
         /************************** ABM ******************************/
 
