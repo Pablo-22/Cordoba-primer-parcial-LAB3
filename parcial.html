@@ -199,10 +199,10 @@
         }
 
         class Persona {
-            id = 0;
-            dni = 0;
-            apellido = '';
-            nombre = '';
+            id;
+            dni;
+            apellido;
+            nombre;
 
             constructor(id, dni, apellido, nombre) {
                 this.dni = dni;
@@ -215,12 +215,24 @@
                     this.id = getMaxId() + 1;
                 }
             }
+
+            toString(){
+                let finalString = '';
+                let objToArray = Object.entries(this);
+
+                objToArray.map((element) => {
+                    let key = element[0];
+                    let value = element[1] || '';
+                    finalString += key + ': ' + value + ' - ';
+                });
+                return finalString;
+            }
         }
 
 
         class Alumno extends Persona {
-            cursoLetra = '';
-            cursoNumero = 0;
+            cursoLetra;
+            cursoNumero;
 
             constructor(id, dni, apellido, nombre, cursoLetra, cursoNumero) {
                 super(id, dni, apellido, nombre);
@@ -228,18 +240,42 @@
                 this.cursoLetra = cursoLetra;
                 this.cursoNumero = cursoNumero;
             }
+
+            toString(){
+                let finalString = '';
+                let objToArray = Object.entries(this);
+
+                objToArray.map((element) => {
+                    let key = element[0];
+                    let value = element[1] || '';
+                    finalString += key + ': ' + value + ' - ';
+                });
+                return finalString;
+            }
         }
 
 
         class Docente extends Persona {
-            materia = '';
-            año = 0;
+            materia;
+            año;
 
             constructor(id, dni, apellido, nombre, materia, año) {
                 super(id, dni, apellido, nombre);
 
                 this.materia = materia;
                 this.año = año;
+            }
+
+            toString(){
+                let finalString = '';
+                let objToArray = Object.entries(this);
+
+                objToArray.map((element) => {
+                    let key = element[0];
+                    let value = element[1];
+                    finalString += key + ': ' + value + '  ';
+                });
+                return finalString;
             }
         }
 
@@ -480,6 +516,9 @@
             isFormActivated = true;
             if (isEditMode) {
                 editMode();
+                formSelect.style.visibility = 'hidden';
+            }else {
+                formSelect.style.visibility = 'visible';
             }
         }
 
@@ -536,13 +575,41 @@
                 if (checkId.length) {
                     alert('Ya existe un elemento con ese ID');
                 }else{
-                    finalOutputArray.push(newObj);
-                    renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+                    if (inputValidation(newObj)) {
+                        console.log(newObj.toString());
+                        finalOutputArray.push(newObj);
+                        renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+                    }else {
+                        alert('Ha habido un error en los datos ingresados');
+                    }
+                    
                 }
                 hideForm()
             }else {
                 renderForm();
             }
+        }
+
+        function inputValidation(obj){
+            validationResult = false;
+            if (obj) {
+                if (obj.id && obj.dni && obj.apellido && obj.nombre && !isNaN(obj.id) && !isNaN(obj.dni) && isNaN(obj.apellido) && isNaN(obj.nombre)) {
+                    className = obj.constructor.name;
+                    switch (className) {
+                        case 'Docente':
+                            if (obj.materia && obj.año && isNaN(obj.materia) && !isNaN(obj.año)) {
+                                validationResult = true;
+                            }
+                            break;
+                        case 'Alumno': 
+                            if (obj.cursoLetra && obj.cursoNumero && isNaN(obj.cursoLetra) && !isNaN(obj.cursoNumero) && obj.cursoLetra.length < 2) {
+                                validationResult = true;
+                            }
+                            break;
+                    }
+                }
+            }
+            return validationResult;
         }
 
         function onEdit(){
@@ -559,16 +626,18 @@
                     newObj = new Alumno(...valuesArray);
                     break;
             }
+            if (inputValidation(newObj) ) {
+                targetIndex = finalOutputArray.findIndex((e) => {
+                    return e.id == newObj.id;
+                })
 
-            targetIndex = finalOutputArray.findIndex((e) => {
-                return e.id == newObj.id;
-            })
+                finalOutputArray[targetIndex] = newObj;
 
-            finalOutputArray[targetIndex] = newObj;
-
-            hideForm();
-            renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
-
+                hideForm();
+                renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+            }else {
+                alert('Ha habido un error en los datos ingresados.');
+            }
         }
 
 
