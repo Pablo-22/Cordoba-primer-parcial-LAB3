@@ -175,8 +175,8 @@
                 <form id="abmForm">
                 </form>
                 <div class="abm-buttons">
-                    <button onclick="onDelete()">Eliminar</button>
-                    <button onclick="onEdit()">Modificar</button>
+                    <button id="deleteButton" onclick="onDelete()">Eliminar</button>
+                    <button id="editButton" onclick="onEdit()">Modificar</button>
                     <button onclick="onCancel()">Cancelar</button>
                 </div>
             </div>
@@ -513,9 +513,12 @@
                 formContainer.style.display = 'block'; 
             })
 
+            let idInput = document.getElementById('inputid');
+            idInput.readOnly = true;
+
             isFormActivated = true;
+            editMode(isEditMode);
             if (isEditMode) {
-                editMode();
                 formSelect.style.visibility = 'hidden';
             }else {
                 formSelect.style.visibility = 'visible';
@@ -532,12 +535,20 @@
         }
 
 
-        function editMode() {
-            let idInput = document.getElementById('inputid');
-            idInput.readOnly = true; 
-
+        function editMode(toggle) { 
+            let editButton = document.getElementById('editButton');
+            let deleteButton = document.getElementById('deleteButton');
             let addButton = document.getElementById('addButton');
-            addButton.disabled = true;
+
+            if (toggle) {
+                editButton.disabled = false;
+                deleteButton.disabled = false;
+                addButton.disabled = true; 
+            }else {
+                editButton.disabled = true;
+                deleteButton.disabled = true;
+                addButton.disabled = false; 
+            }
         }
         /******************* FIN FORM *********************************/ 
 
@@ -579,14 +590,14 @@
                         console.log(newObj.toString());
                         finalOutputArray.push(newObj);
                         renderTable(finalOutputArray, propNames, filterCriteria, filterValue, orderCriteria, orderValue);
+                        hideForm()
                     }else {
                         alert('Ha habido un error en los datos ingresados');
                     }
                     
                 }
-                hideForm()
             }else {
-                renderForm();
+                renderForm(null, false);
             }
         }
 
